@@ -1,36 +1,32 @@
 clear
-if isempty(gcp('nocreate'))
-    parpool('IdleTimeout',60);
-end
-addpath('./datasets');addpath('./para');
-addpath('./CM');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+addpath('./datasets');addpath('./para');addpath('./CM');addpath('./function');
+%%%%%%%%%%%%%%%%%%% Load Dataset %%%%%%%%%%%%%%%%%%%%%%%%%%
 datasetName = 'ORL_mtv';
-load(['./datasets/',datasetName]);
-load(['./para/',datasetName]);
-% DIM_PCA: 200 or 30
-% n_random: 0 or 1, use or not use hard negative example
-% neidian: [6 12 18 24 30], Each sample point draws 'neidian' nearest neighbors as positive examples of triplet
+% DIM_PCA=200;%200 or 30
+% n_random=1;%0 or 1, use or not use hard negative example
+% kpoint=6;%[6 12 18 24 30], Each sample point draws 'kpoint' nearest neighbors as positive examples of triplet
+% numflag=1;%1 is spectral clustering, 0 is kmeans
+load(['./datasets/',datasetName]);%dataset
+load(['./para/',datasetName, '-para.mat']);%Load parameters
 N = size(X{1},1);
 cls_num = length(unique(Y));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-tic
-parfor v=1:length(X)%Obtain initial low-dimensional embedding
+%%%%%%%%%%%%%%%%%%%%% run TLMSC %%%%%%%%%%%%%%%%%%%%%%%%
+for v=1:length(X)%use PCA
     dim=size(X{v},2);
     if dim > DIM_PCA
-        X{v} = py.sklearn.decomposition.TruncatedSVD(pyargs('n_components',int64(DIM_PCA),'random_state',int64(0))).fit_transform(X{v});
-        X{v}=double(X{v});
+        [X{v},~] = pca(X{v}','NumComponents',DIM_PCA);
+        %     X{v} = py.sklearn.decomposition.TruncatedSVD(pyargs('n_components',int64(DIM_PCA),'random_state',int64(0))).fit_transform(X{v});
+        %     X{v}=double(X{v});
     end
     X{v}=normalize(X{v},1);
 end
-em=transformone(X,neidian,cls_num,n_random);%Obtain improved low-dimensional embeddings
-if numflag==0.5
-    num=floor(N^0.5);
-else
-    num=ceil(N/10);
+for repeat=1:10
+    tic;
+    em=transformone(X,kpoint,cls_num,n_random);%Obtain improved low-dimensional embeddings
+    label = fastSpectralClustering(em,cls_num,numflag);
+    TLMSC_res(repeat,:)=Clustering8Measure(Y,label);
+    times(repeat)=toc;
 end
-label = fastSpectralClustering(em,cls_num,num);
-toc
-disp("    acc       nmi       F       Precision   AR        PURITY    RECALL")
-disp(Clustering8Measure(Y, label))
-
+TLMSC_res=mean(TLMSC_res);
+fprintf('TLMSC result: ACC %f   NMI %f \n',TLMSC_res(1)*100,TLMSC_res(2)*100)
+mean(times)
