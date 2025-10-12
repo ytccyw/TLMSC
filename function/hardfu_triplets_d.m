@@ -6,7 +6,7 @@ while true
         mi=(jiec(cnum)+jiec(cnum*(class-1))+jiec(p)+jiec(class*cnum-p)-jiec(cnum-i)-jiec(p-i)-jiec(class*cnum)-jiec(class*cnum-cnum-p+i));
         gailv =gailv+(10^mi)/factorial(i);
     end
-    if gailv>0.97
+    if gailv>0.97||d>(p/2)||isnan(gailv)
         break
     end
     d=d+1;
