@@ -2,9 +2,10 @@ function [newtri] = tridelete(tri,nei,cls_num,n_inliers,inputs,n_random)
 N=length(tri{1});
 V=length(tri);
 NN=length(nei{1});
-
+if n_random~=0
 hardp=floor(NN/cls_num);
 thisd=hardfu_triplets_d(hardp,cls_num,floor(NN/cls_num));
+end
 for v=1:V
     if n_random~=0
     if NN>10000
