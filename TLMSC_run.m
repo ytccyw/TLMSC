@@ -5,7 +5,7 @@ addpath('./datasets');addpath('./para');addpath('./CM');addpath('./function');
 % DIM_PCA=200;%200 or 30
 % kpoint=6;%[6 12 18 24 30], Each sample point draws 'kpoint' nearest neighbors as positive examples of triplet
 %% Minor parameters, can be ignored for simplicity
-% n_random=0;%0 or 1, use or not use hard negative example
+% n_random=0;%0 or 1, not use or use hard negative example
 % numflag=0;%1 is spectral clustering, 0 is kmeans
 
 datasetName = 'ORL_mtv';
